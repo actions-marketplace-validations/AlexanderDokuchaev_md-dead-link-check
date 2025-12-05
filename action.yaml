@@ -1,5 +1,5 @@
-name: 'Markdown dead link checker GitHub Action'
-description: 'A GitHub Action to help you keep your Markdown files free of broken links!'
+name: 'Markdown dead link checker'
+description: 'This handy tool helps you maintain the integrity of your Markdown files by identifying broken links.'
 branding:
   icon: 'external-link'
   color: 'blue'
@@ -9,19 +9,41 @@ inputs:
     description: 'Config toml file'
     required: false
     default: 'pyproject.toml'
+  version:
+    description: 'Version of package'
+    required: false
+    default: '1.2.0'
+  python_version:
+    description: 'Python version'
+    required: false
+    default: '3.10'
 
 runs:
   using: 'composite'
   steps:
     - name: Install Python
-      uses: actions/setup-python@v4
+      uses: actions/setup-python@e797f83bcb11b83ae66e0230d6156d7c80228e7c # v6.0.0
       with:
-        python-version: '3.10'
+        python-version: ${{ inputs.python_version }}
 
     - name: Install md-dead-link-check
-      run: pip install md-dead-link-check==0.2
+      run: pip install md-dead-link-check==${{ inputs.version }}
       shell: bash
 
-    - name: Fetch the number's square
+    - name: (PR) Get all changed markdown files
+      id: changed-markdown-files
+      if: github.event_name == 'pull_request'
+      uses: tj-actions/changed-files@24d32ffd492484c1d75e0c0b894501ddb9d30d62 # v47.0.0
+      with:
+        files: |
+            **.md
+
+    - name: (PR) Check links
+      if: github.event_name == 'pull_request'
+      run: md-dead-link-check --config=${{ inputs.config }} --hook ${{ steps.changed-markdown-files.outputs.all_changed_files }}
+      shell: bash
+
+    - name: Check all links
+      if: github.event_name != 'pull_request'
       run: md-dead-link-check --config=${{ inputs.config }}
       shell: bash

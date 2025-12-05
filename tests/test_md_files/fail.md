@@ -10,4 +10,12 @@
 
 ### Incorrect fragment
 
-[1](a.md#fail)
+[1](/tests/test_md_files/fail.md#fail)
+
+[1](not_exist_dir)
+
+[1](error://urls/)
+
+[1](https://example.com/(bracket))
+
+[1](https://example.com]https://example.com)
